@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -56,6 +57,34 @@ func notFound(writer http.ResponseWriter, req *http.Request) {
 	}`))
 }
 
+func params(writer http.ResponseWriter, req *http.Request) {
+	pathParams := mux.Vars(req)
+	writer.Header().Set("Content-Type", "application/json")
+
+	id := -1
+	var errCode error
+	if val, ok := pathParams["id"]; ok {
+		id, errCode = strconv.Atoi(val)
+		if errCode != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			writer.Write([]byte(`
+			{
+				"message" "Please input a number."
+			}`))
+			return
+		}
+	}
+
+	query := req.URL.Query()
+	location := query.Get("location")
+
+	writer.Write([]byte(fmt.Sprintf(`
+	{
+		"id": %d,
+		"location": %s
+	}`, id, location)))
+}
+
 func main() {
 	fmt.Println("Go Rest!")
 	req := mux.NewRouter()
@@ -65,5 +94,7 @@ func main() {
 	api.HandleFunc("", put).Methods(http.MethodPut)
 	api.HandleFunc("", delete).Methods(http.MethodDelete)
 	api.HandleFunc("", notFound)
+	api.HandleFunc("/user/{id}", params).Methods(http.MethodGet)
+
 	log.Fatal(http.ListenAndServe(":8080", req))
 }
