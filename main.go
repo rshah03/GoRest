@@ -59,10 +59,11 @@ func notFound(writer http.ResponseWriter, req *http.Request) {
 func main() {
 	fmt.Println("Go Rest!")
 	req := mux.NewRouter()
-	req.HandleFunc("/", get).Methods(http.MethodGet)
-	req.HandleFunc("/", post).Methods(http.MethodPost)
-	req.HandleFunc("/", put).Methods(http.MethodPut)
-	req.HandleFunc("/", delete).Methods(http.MethodDelete)
-	req.HandleFunc("/", notFound)
+	api := req.PathPrefix("/api/v1").Subrouter()
+	api.HandleFunc("", get).Methods(http.MethodGet)
+	api.HandleFunc("", post).Methods(http.MethodPost)
+	api.HandleFunc("", put).Methods(http.MethodPut)
+	api.HandleFunc("", delete).Methods(http.MethodDelete)
+	api.HandleFunc("", notFound)
 	log.Fatal(http.ListenAndServe(":8080", req))
 }
